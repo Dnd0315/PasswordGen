@@ -1,2 +1,2 @@
 # PasswordGen
-Passworf Generator 
+Password Generator 
