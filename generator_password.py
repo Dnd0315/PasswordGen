@@ -1,4 +1,5 @@
 import random
+import pyttsx3
 import string
 import tkinter as tk
 from tkinter import messagebox
@@ -12,6 +13,7 @@ import time
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
+from google.auth.transport.requests import Request
 import hvac
 
 SCOPES = ['https://www.googleapis.com/auth/gmail.send']
@@ -55,6 +57,7 @@ def get_gmail_service():
 
 def sendEmail(to, content):
     try:
+        engine = pyttsx3.init() # Initialisation du moteur de synthèse vocale   
         service = get_gmail_service()
         message = MIMEText(content)
         message['to'] = to
@@ -62,7 +65,11 @@ def sendEmail(to, content):
         raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
         message_body = {'raw': raw}
         service.users().messages().send(userId="me", body=message_body).execute()
-        messagebox.showinfo("Succès", "E-mail envoyé avec succès !")
+        message_succes = "E-mail envoyé avec succès !"
+        messagebox.showinfo("Succès",message_succes)
+        data = input(message_succes)
+        engine.say(data)
+        engine.runAndWait()
     except Exception as e:
         messagebox.showerror("Erreur", f"Échec de l'envoi de l'e-mail : {e}")
 
