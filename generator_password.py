@@ -88,9 +88,10 @@ def store_password_in_vault(email, password):
     client = hvac.Client(url=VAULT_ADDR, token=VAULT_TOKEN)
     if not client.is_authenticated():
         raise RuntimeError("Vault authentication failed.")
+    
     # Lire les données existantes
     try:
-        resp = client.secrets.kv.v2.read_secret_version(path="password/store")
+        resp = client.secrets.kv.v2.read_secret_version(path=VAULT_KV_PATH_PASSWORD)
         data = resp["data"]["data"]
     except Exception:
         data = {}
@@ -100,7 +101,7 @@ def store_password_in_vault(email, password):
     data[key] = password
     # Réécrire le secret
     client.secrets.kv.v2.create_or_update_secret(
-        path="password/store",
+        path=VAULT_KV_PATH_PASSWORD,
         secret=data
     )
     print('Secret written successfully.')

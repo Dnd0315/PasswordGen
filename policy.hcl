@@ -5,3 +5,7 @@ path "secret/data/gmail/*" {
 path "secret/data/password/*" {
   capabilities = ["create","update"]
 }
+
+path "secret/metadata/password/*" {
+  capabilities = ["list"]
+}
