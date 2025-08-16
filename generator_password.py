@@ -20,14 +20,16 @@ SCOPES = ['https://www.googleapis.com/auth/gmail.send']
 
 VAULT_ADDR = os.getenv("VAULT_ADDR", "http://127.0.0.1:8200")
 VAULT_TOKEN = os.getenv("VAULT_TOKEN")
-VAULT_KV_PATH = os.getenv("VAULT_KV_PATH", "gmail/myapp")  # correspond à secret/gmail/myapp
+VAULT_KV_PATH_GMAIL = "gmail/myapp"  # correspond à secret/gmail/myapp
+VAULT_KV_PATH_PASSWORD = "password/store"  # correspond à secret/password/store
+
 client = hvac.Client(url=VAULT_ADDR, token=VAULT_TOKEN)
 
 def read_client_credentials_json_from_vault():
     if not client.is_authenticated():
         raise RuntimeError("Vault authentication failed.")
     # KV v2 -> resp['data']['data']
-    resp = client.secrets.kv.v2.read_secret_version(path=VAULT_KV_PATH)
+    resp = client.secrets.kv.v2.read_secret_version(path=VAULT_KV_PATH_GMAIL)
     data = resp["data"]["data"]
     raw = data.get("client_credentials_json")
     if raw is None:
@@ -88,7 +90,7 @@ def store_password_in_vault(email, password):
         raise RuntimeError("Vault authentication failed.")
     # Lire les données existantes
     try:
-        resp = client.secrets.kv.v2.read_secret_version(path=VAULT_KV_PATH)
+        resp = client.secrets.kv.v2.read_secret_version(path="password/store")
         data = resp["data"]["data"]
     except Exception:
         data = {}
@@ -98,9 +100,10 @@ def store_password_in_vault(email, password):
     data[key] = password
     # Réécrire le secret
     client.secrets.kv.v2.create_or_update_secret(
-        path=VAULT_KV_PATH,
+        path="password/store",
         secret=data
     )
+    print('Secret written successfully.')
 
 def generer():
     try:
