@@ -208,3 +208,5 @@ __marimo__/
 
 #Secrets and credentials
 credentials/
+.token_vault
+token.json
