@@ -1,88 +1,88 @@
 # PasswordGen 🔐
 
-**PasswordGen** est une application **Python** permettant de :  
-- Générer des mots de passe sécurisés  
-- Les envoyer par e-mail via **Gmail**  
-- Les stocker de façon sécurisée dans **HashiCorp Vault**
+**PasswordGen** is a **Python** application that allows you to:  
+- Generate secure passwords  
+- Send them by email via **Gmail**  
+- Store them securely in **HashiCorp Vault**
 
 ---
 
-## ✨ Fonctionnalités
+## ✨ Features
 
-- **🔑 Génération de mots de passe**  
-  Création de mots de passe aléatoires et robustes selon la longueur choisie par l’utilisateur.
+- **🔑 Password generation**  
+  Create random and strong passwords based on the desired length.
 
-- **🖥️ Interface graphique (Tkinter)**  
-  Saisie de la longueur du mot de passe et de l’adresse e-mail de destination, puis génération d’un simple clic.
+- **🖥️ Graphical interface (Tkinter)**  
+  Enter the password length and recipient email address, then generate with a single click.
 
-- **📧 Envoi automatique par e-mail**  
-  Le mot de passe généré est envoyé via l’API Gmail et **OAuth2** (`google-auth`, `google-api-python-client`).  
-  👉 Les identifiants OAuth2 sont stockés dans **Vault** (jamais en clair sur le disque).
+- **📧 Automatic email sending**  
+  The generated password is sent via the Gmail API and **OAuth2** (`google-auth`, `google-api-python-client`).  
+  👉 OAuth2 credentials are stored in **Vault** (never in plain text on disk).
 
-- **🗄️ Stockage sécurisé dans Vault**  
-  Chaque mot de passe est stocké dans le secret `password/store`.  
-  - Clé = `email_timestamp`  
-  - Permet de conserver l’historique des mots de passe générés par utilisateur.
+- **🗄️ Secure storage in Vault**  
+  Each password is stored in the `password/store` secret.  
+  - Key = `email_timestamp`  
+  - Keeps a history of passwords generated for each user.
 
-- **🔊 Synthèse vocale (optionnelle)**  
-  Un message vocal de confirmation est lu après l’envoi de l’e-mail.
+- **🔊 Text-to-speech (optional)**  
+  A confirmation message is read aloud after sending the email.
 
-- **🔐 Gestion des secrets**  
-  Les identifiants OAuth2 Gmail sont eux-mêmes stockés dans Vault.
+- **🔐 Secret management**  
+  Gmail OAuth2 credentials are also stored in Vault.
 
 ---
 
-## ⚙️ Prérequis
+## ⚙️ Requirements
 
 - Python **3.7+**
-- Un serveur **HashiCorp Vault** accessible et configuré
-- Un projet **Google Cloud** avec l’API Gmail activée
-- Un fichier `credentials.json` stocké dans Vault
-- Variables d’environnement à définir :
+- An accessible and configured **HashiCorp Vault** server
+- A **Google Cloud** project with the Gmail API enabled
+- A `credentials.json` file stored in Vault
+- Environment variables to set:
   ```sh
   export VAULT_ADDR="http://127.0.0.1:8200"
-  export VAULT_TOKEN="<TOKEN_VAULT>"
+  export VAULT_TOKEN="<VAULT_TOKEN>"
   ```
 
 ---
 
 ## 🚀 Installation
 
-1. Clonez ce dépôt :
+1. Clone this repository:
    ```sh
    git clone https://github.com/<username>/PasswordGen.git
    cd PasswordGen
    ```
 
-2. Installez les dépendances :
+2. Install dependencies:
    ```sh
    pip install -r requirements.txt
    ```
 
 ---
 
-## ▶️ Utilisation
+## ▶️ Usage
 
-Lancez l’application :
+Run the application:
 ```sh
 python app.py
 ```
 
-Une interface graphique s’ouvre pour générer et envoyer les mots de passe.
+A graphical interface will open to generate and send passwords.
 
 ---
 
 ## 📖 Notes
 
-- En mode développement, utilisez Vault avec le moteur **KV v2** activé.  
-- Pour plus de détails sur l’installation et la configuration de Vault, référez-vous au fichier [README Vault](./vault/README.md).
+- In development mode, use Vault with the **KV v2** engine enabled.  
+- For more details on installing and configuring Vault, see the [Vault README](./vault/README.md).
 
 ---
 
-## 🛡️ Sécurité
+## 🛡️ Security
 
-- Ne stockez jamais vos secrets en clair.  
-- Utilisez toujours **Vault** pour gérer vos tokens et credentials sensibles.  
-- Activez la rotation régulière des secrets en production.  
+- Never store your secrets in plain text.  
+- Always use **Vault** to manage your sensitive tokens and credentials.  
+- Enable regular secret rotation in production.  
 
 ---

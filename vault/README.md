@@ -1,15 +1,15 @@
 # PasswordGen – Vault Installation & Configuration
 
-Ce document décrit l’installation locale de **HashiCorp Vault** et sa configuration pour le projet **PasswordGen**, avec le moteur **KV v2**.
+This document describes the local installation of **HashiCorp Vault** and its configuration for the **PasswordGen** project, using the **KV v2** secrets engine.
 
 ---
 
-## 📦 Prérequis
+## 📦 Prerequisites
 
-- macOS avec **Homebrew** (ou un binaire Vault dans le PATH).
-- **Python 3.9+** si intégration avec `hvac` côté app.
-- Outils shell: `jq` recommandé.
-- Compte utilisateur avec droits d’installation locale.
+- macOS with **Homebrew** (or a Vault binary available in the PATH).
+- **Python 3.9+** if integrating with `hvac` in the app.
+- Shell tools: `jq` recommended.
+- A user account with local installation rights.
 
 ---
 
@@ -21,69 +21,69 @@ brew tap hashicorp/tap
 brew install hashicorp/tap/vault
 ```
 
-### Vérifier l’installation
+### Verify the installation
 ```bash
 vault -v
 ```
 
 ---
 
-## 🚀 Démarrage en mode développement
+## 🚀 Start in Development Mode
 
-Le mode **dev** est uniquement destiné aux tests en local (⚠️ à ne pas utiliser en production).
+The **dev mode** is only meant for local testing (⚠️ do not use in production).
 
-1. Lancer Vault en mode dev :
+1. Start Vault in dev mode:
    ```bash
    vault server -dev
    ```
 
-2. Récupérer dans la sortie :
-   - L’adresse (par défaut: `http://127.0.0.1:8200`)
-   - Le **root token**
+2. From the output, retrieve:
+   - The address (default: `http://127.0.0.1:8200`)
+   - The **root token**
 
-3. Exporter les variables d’environnement :
+3. Export environment variables:
    ```bash
    export VAULT_ADDR='http://127.0.0.1:8200'
-   export VAULT_TOKEN='<ROOT_TOKEN_AFFICHE>'
+   export VAULT_TOKEN='<DISPLAYED_ROOT_TOKEN>'
    ```
 
-4. Vérifier le statut :
+4. Check status:
    ```bash
    vault status
    ```
 
 ---
 
-## 🔑 Activer le moteur KV v2
+## 🔑 Enable KV v2 Engine
 
-Activer KV v2 sur le mount `secret/` (si absent) :
+Enable KV v2 on the `secret/` mount (if not already present):
 ```bash
 vault secrets enable -path=secret -version=2 kv
 ```
 
-Lister les secrets engines actifs :
+List active secrets engines:
 ```bash
 vault secrets list
 ```
 
 ---
 
-## 📂 Structure des chemins PasswordGen
+## 📂 PasswordGen Path Structure
 
-- Mount par défaut : `secret/`
-- Secrets utilisés :
-  - `secret/password/...` → mots de passe/configs
-  - `secret/gmail/myapp` → credentials Gmail/OAuth
+- Default mount: `secret/`
+- Secrets used:
+  - `secret/password/...` → passwords/configs
+  - `secret/gmail/myapp` → Gmail/OAuth credentials
 
-Dans le code (via API/SDK), il suffit d’utiliser :
+In code (via API/SDK), use:
 - `mount_point = "secret"`
-- `path = "password/<nom>"` ou `gmail/<app>`
+- `path = "password/<name>"` or `gmail/<app>`
 
 ---
 
 ## 🔐 Policies (RBAC)
 
-### Lecture des secrets Gmail
+### Gmail secrets read-only access
 ```hcl
 # policy_gmail_read.hcl
 path "secret/data/gmail/*" {
@@ -94,7 +94,7 @@ path "secret/metadata/gmail/*" {
 }
 ```
 
-### Lecture/Écriture des secrets PasswordGen
+### PasswordGen read/write access
 ```hcl
 # policy_password_rw.hcl
 path "secret/data/password/*" {
@@ -105,7 +105,7 @@ path "secret/metadata/password/*" {
 }
 ```
 
-Charger les policies :
+Load the policies:
 ```bash
 vault policy write gmail-read policy_gmail_read.hcl
 vault policy write password-rw policy_password_rw.hcl
@@ -113,73 +113,73 @@ vault policy write password-rw policy_password_rw.hcl
 
 ---
 
-## 🎟️ Créer un token d’application
+## 🎟️ Create an Application Token
 
-Créer un token limité aux policies nécessaires :
+Create a token limited to the required policies:
 ```bash
 vault token create -policy=gmail-read -policy=password-rw
 ```
 
-Obtenir uniquement la valeur du token :
+Get only the token value:
 ```bash
 vault token create -policy=gmail-read -policy=password-rw -format=json | jq -r '.auth.client_token'
 ```
 
-Vérifier un token :
+Check a token:
 ```bash
 vault token lookup
 ```
 
-⚠️ Bonnes pratiques :
-- Ne jamais utiliser le root token dans une application.
-- Utiliser des TTL courts et rotation régulière.
-- En production : préférer AppRole, OIDC, GCP auth.
+⚠️ Best practices:
+- Never use the root token in an application.
+- Use short TTLs and rotate regularly.
+- In production: prefer AppRole, OIDC, or GCP auth.
 
 ---
 
-## 📖 Gestion des secrets (CLI)
+## 📖 Managing Secrets (CLI)
 
-Écrire/créer un secret :
+Write/create a secret:
 ```bash
-vault kv put secret/password/mon-secret username="alice" password="s3cr3t"
+vault kv put secret/password/my-secret username="alice" password="s3cr3t"
 ```
 
-Lire un secret :
+Read a secret:
 ```bash
-vault kv get secret/password/mon-secret
+vault kv get secret/password/my-secret
 ```
 
-Patch (ajouter sans écraser) :
+Patch (add without overwriting):
 ```bash
-vault kv patch secret/password/mon-secret note="perso"
+vault kv patch secret/password/my-secret note="personal"
 ```
 
-Lister les clés :
+List keys:
 ```bash
 vault kv list secret/password/
 ```
 
-Charger depuis un fichier JSON :
+Load from a JSON file:
 ```bash
 vault kv put secret/gmail/myapp @client_credentials.json
 ```
 
-➡️ KV v2 permet le versionnement :  
-- Lire une version précise : `vault kv get -version=N secret/password/mon-secret`  
-- Supprimer logiquement : `vault kv delete -versions=N secret/password/mon-secret`  
-- Détruire définitivement : `vault kv destroy -versions=N secret/password/mon-secret`
+➡️ KV v2 supports versioning:  
+- Read a specific version: `vault kv get -version=N secret/password/my-secret`  
+- Soft delete a version: `vault kv delete -versions=N secret/password/my-secret`  
+- Permanently destroy a version: `vault kv destroy -versions=N secret/password/my-secret`
 
 ---
 
-## 🌍 Variables d’environnement PasswordGen
+## 🌍 Environment Variables for PasswordGen
 
-Configurer les variables nécessaires dans l’environnement de l’application :
+Set the required environment variables in the application environment:
 
 ```bash
 export VAULT_ADDR='http://127.0.0.1:8200'
-export VAULT_TOKEN='<TOKEN_APPLICATION>'
+export VAULT_TOKEN='<APP_TOKEN>'
 export VAULT_MOUNT='secret'
-export VAULT_KV_PATH_PASSWORD='password/mon-secret'
+export VAULT_KV_PATH_PASSWORD='password/my-secret'
 export VAULT_KV_PATH_GMAIL='gmail/myapp'
 ```
 
